@@ -36,6 +36,7 @@ func TestBoolToInt(t *testing.T) {
 	type args struct {
 		b bool
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -65,6 +66,7 @@ func TestQuote(t *testing.T) {
 	type args struct {
 		s string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -119,6 +121,7 @@ func TestTouch(t *testing.T) {
 		accessTimeParam Time
 		modTimeParam    Time
 	}
+
 	tests := []struct {
 		name           string
 		args           args
@@ -183,7 +186,7 @@ func TestTouch(t *testing.T) {
 				m.On("Chtimes", "existing.txt", time.Date(2025, 7, 13, 11, 0, 0, 0, time.Local), mock.AnythingOfType("time.Time")).
 					Return(nil)
 			},
-			mockGetAtime: func(fi os.FileInfo) Time {
+			mockGetAtime: func(_ os.FileInfo) Time {
 				return time.Date(2025, 7, 13, 11, 0, 0, 0, time.Local)
 			},
 			mockSetNoDeref: nil,
@@ -328,15 +331,20 @@ func TestTouch(t *testing.T) {
 			if tt.mockFSSetup != nil {
 				tt.mockFSSetup(mockFS)
 			}
+
 			filesystem.Default = mockFS // Override default FS with mock.
+
 			if tt.mockGetAtime != nil {
 				oldGetAtime := platform.GetAtime
 				platform.GetAtime = tt.mockGetAtime
+
 				defer func() { platform.GetAtime = oldGetAtime }()
 			}
+
 			if tt.mockSetNoDeref != nil {
 				oldSetNoDeref := platform.SetTimesNoDeref
 				platform.SetTimesNoDeref = tt.mockSetNoDeref
+
 				defer func() { platform.SetTimesNoDeref = oldSetNoDeref }()
 			}
 

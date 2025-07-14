@@ -35,7 +35,9 @@ import (
 func Test_calculateTimestamps(t *testing.T) {
 	fixedNow := time.Date(2025, 7, 13, 0, 0, 0, 0, time.Local)
 	oldNow := core.Now
+
 	defer func() { core.Now = oldNow }()
+
 	core.Now = func() core.Time { return fixedNow }
 
 	type args struct {
@@ -45,11 +47,12 @@ func Test_calculateTimestamps(t *testing.T) {
 		dateStr     string
 		files       []string
 	}
+
 	tests := []struct {
 		name        string
 		args        args
 		mockFSSetup func(*mocks.MockFS)
-		setupEnv    func()
+		setupEnv    func(*testing.T)
 		wantAccess  core.Time
 		wantMod     core.Time
 		wantFiles   []string
@@ -86,7 +89,7 @@ func Test_calculateTimestamps(t *testing.T) {
 				m.On("Stat", "ref.txt").
 					Return(&mockFileInfo{access: time.Date(2025, 7, 13, 14, 0, 0, 0, time.Local), mod: time.Date(2025, 7, 13, 13, 0, 0, 0, time.Local)}, nil)
 			},
-			setupEnv: func() {
+			setupEnv: func(_ *testing.T) {
 				platform.GetAtime = func(fi os.FileInfo) core.Time {
 					return fi.(*mockFileInfo).access
 				}
@@ -110,7 +113,7 @@ func Test_calculateTimestamps(t *testing.T) {
 				m.On("Lstat", "ref.txt").
 					Return(&mockFileInfo{access: time.Date(2025, 7, 13, 15, 0, 0, 0, time.Local), mod: time.Date(2025, 7, 13, 12, 0, 0, 0, time.Local)}, nil)
 			},
-			setupEnv: func() {
+			setupEnv: func(_ *testing.T) {
 				platform.GetAtime = func(fi os.FileInfo) core.Time {
 					return fi.(*mockFileInfo).access
 				}
@@ -199,8 +202,9 @@ func Test_calculateTimestamps(t *testing.T) {
 				files:       []string{"2507131430", "file1.txt"},
 			},
 			mockFSSetup: nil,
-			setupEnv: func() {
-				os.Setenv("POSIXLY_CORRECT", "1")
+			setupEnv: func(t *testing.T) {
+				t.Helper()
+				t.Setenv("POSIXLY_CORRECT", "1")
 			},
 			wantAccess: time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local),
 			wantMod:    time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local),
@@ -285,12 +289,12 @@ func Test_calculateTimestamps(t *testing.T) {
 			if tt.mockFSSetup != nil {
 				tt.mockFSSetup(mockFS)
 			}
+
 			filesystem.Default = mockFS // Override default FS with mock.
 
-			// Setup env if needed, defer unset.
+			// Setup env if needed, defer unset not needed with t.Setenv.
 			if tt.setupEnv != nil {
-				tt.setupEnv()
-				defer os.Unsetenv("POSIXLY_CORRECT")
+				tt.setupEnv(t)
 			}
 
 			// Capture stderr.
@@ -307,6 +311,7 @@ func Test_calculateTimestamps(t *testing.T) {
 			)
 
 			w.Close()
+
 			os.Stderr = oldStderr
 
 			var buf bytes.Buffer
@@ -318,15 +323,19 @@ func Test_calculateTimestamps(t *testing.T) {
 
 				return
 			}
+
 			if !got.Equal(tt.wantAccess) {
 				t.Errorf("calculateTimestamps() got = %v, want %v", got, tt.wantAccess)
 			}
+
 			if !got1.Equal(tt.wantMod) {
 				t.Errorf("calculateTimestamps() got1 = %v, want %v", got1, tt.wantMod)
 			}
+
 			if !reflect.DeepEqual(got2, tt.wantFiles) {
 				t.Errorf("calculateTimestamps() got2 = %v, want %v", got2, tt.wantFiles)
 			}
+
 			if stderrOutput != tt.wantStderr {
 				t.Errorf("calculateTimestamps() stderr = %v, want %v", stderrOutput, tt.wantStderr)
 			}

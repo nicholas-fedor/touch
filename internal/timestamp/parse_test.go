@@ -27,6 +27,7 @@ func TestParsePosixTime(t *testing.T) {
 	type args struct {
 		timestampStr string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -58,9 +59,18 @@ func TestParsePosixTime(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "month format",
-			args:    args{timestampStr: "07131430"},
-			want:    time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local), // Using current year 2025.
+			name: "month format",
+			args: args{timestampStr: "07131430"},
+			want: time.Date(
+				2025,
+				7,
+				13,
+				14,
+				30,
+				0,
+				0,
+				time.Local,
+			), // Using fixed test year 2025.
 			wantErr: false,
 		},
 		{
@@ -132,12 +142,19 @@ func TestParsePosixTime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Set up fixed current time for consistency in tests.
+			origNow := Now
+			Now = func() Time { return time.Date(2025, 7, 13, 0, 0, 0, 0, time.Local) }
+
+			defer func() { Now = origNow }()
+
 			got, err := ParsePosixTime(tt.args.timestampStr)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParsePosixTime() error = %v, wantErr %v", err, tt.wantErr)
 
 				return
 			}
+
 			if !got.Equal(tt.want) {
 				t.Errorf("ParsePosixTime() got = %v, want %v", got, tt.want)
 			}
@@ -149,6 +166,7 @@ func TestParseDate(t *testing.T) {
 	type args struct {
 		dateStr string
 	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -188,13 +206,13 @@ func TestParseDate(t *testing.T) {
 		{
 			name:    "HH:MM:SS",
 			args:    args{dateStr: "14:30:00"},
-			want:    time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local), // Using current date.
+			want:    time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local),
 			wantErr: false,
 		},
 		{
 			name:    "HH:MM",
 			args:    args{dateStr: "14:30"},
-			want:    time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local), // Using current date.
+			want:    time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local),
 			wantErr: false,
 		},
 		{
@@ -230,12 +248,19 @@ func TestParseDate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Set up fixed current time for consistency in tests.
+			origNow := Now
+			Now = func() Time { return time.Date(2025, 7, 13, 0, 0, 0, 0, time.Local) }
+
+			defer func() { Now = origNow }()
+
 			got, err := ParseDate(tt.args.dateStr)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseDate() error = %v, wantErr %v", err, tt.wantErr)
 
 				return
 			}
+
 			if !got.Equal(tt.want) {
 				t.Errorf("ParseDate() got = %v, want %v", got, tt.want)
 			}

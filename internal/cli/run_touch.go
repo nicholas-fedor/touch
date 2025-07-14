@@ -21,19 +21,33 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"runtime"
 
 	"github.com/spf13/cobra"
+
+	"github.com/nicholas-fedor/touch/internal/errors"
 )
 
-// RunTouch is the entry point for the root command's RunE.
-// It orchestrates flag processing, timestamp calculation, and file application.
-// Returns an error if any step fails.
+// RunTouch is the entry point for the root command's RunE function.
+// It processes flags, calculates timestamps, and applies changes to files.
+// It handles warnings for obsolete usage or platform-specific limitations.
 func RunTouch(cmd *cobra.Command, args []string) error {
+	// Process and validate command-line flags.
 	changeTimes, noCreate, noDeref, refFilePath, tStamp, dateStr, err := processFlags(cmd)
 	if err != nil {
 		return err
 	}
 
+	// Warn if -h/--no-dereference is used on Windows, where it's unsupported.
+	if noDeref && runtime.GOOS == "windows" {
+		fmt.Fprintln(
+			os.Stderr,
+			"Warning: -h/--no-dereference is not supported on Windows; symlinks will be followed",
+		)
+	}
+
+	// Calculate timestamps and update args if using obsolete format (e.g., `touch 202507131430 file.txt`).
 	accessTime, modTime, files, err := calculateTimestamps(
 		noDeref,
 		refFilePath,
@@ -45,9 +59,11 @@ func RunTouch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// If no files are provided, return an error (will trigger usage display).
 	if len(files) == 0 {
-		return fmt.Errorf("missing operands")
+		return errors.ErrMissingOperands
 	}
 
+	// Apply the touch operation to the list of files concurrently.
 	return applyToFiles(changeTimes, noCreate, noDeref, accessTime, modTime, files)
 }

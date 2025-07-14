@@ -4,11 +4,11 @@
 // dereferencing symlinks.
 //
 // Main Functions:
-// - Touch: Applies specified timestamps to a file, creating it if necessary (unless noCreate is true).
-//   Supports partial updates by preserving existing times and handles no-dereference mode.
-// - Now: A variable holding the function to get the current time, allowing mocking in tests.
-// - BoolToInt: Converts a boolean to an integer (1 for true, 0 for false), used for flag counting.
-// - Quote: Wraps a string in quotes for safe display in error messages.
+//   - Touch: Applies specified timestamps to a file, creating it if necessary (unless noCreate is true).
+//     Supports partial updates by preserving existing times and handles no-dereference mode.
+//   - Now: A variable holding the function to get the current time, allowing mocking in tests.
+//   - BoolToInt: Converts a boolean to an integer (1 for true, 0 for false), used for flag counting.
+//   - Quote: Wraps a string in quotes for safe display in error messages.
 //
 // Constants:
 // - ChAtime, ChMtime: Bit flags to determine which timestamps to update.

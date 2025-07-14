@@ -52,41 +52,55 @@ const (
 // Time is an alias for time.Time, used for clarity in function signatures.
 type Time = time.Time
 
+// Now is a variable function that returns the current time, allowing tests to override it.
+var Now = time.Now
+
 // ParsePosixTime parses the POSIX timestamp format [[CC]YY]MMDDhhmm[.ss].
 // Handles century/year variations and validates component ranges.
 // Returns a time.Time in the local timezone or an error if invalid.
 func ParsePosixTime(timestampStr string) (Time, error) {
 	dotIndex := strings.Index(timestampStr, ".")
 	second := 0
+
 	if dotIndex != -1 {
 		secondsStr := timestampStr[dotIndex+1:]
 		if len(secondsStr) != posixSecondsLength {
 			return Time{}, fmt.Errorf("%w: %s", errors.ErrInvalidSeconds, secondsStr)
 		}
+
 		var err error
+
 		second, err = strconv.Atoi(secondsStr)
 		if err != nil {
 			return Time{}, fmt.Errorf("atoi seconds: %w", err)
 		}
+
 		if second < minSecond || second > maxSecond {
 			return Time{}, fmt.Errorf("%w: %d", errors.ErrInvalidSeconds, second)
 		}
+
 		timestampStr = timestampStr[:dotIndex]
 	}
 
 	length := len(timestampStr)
-	var year, month, day, hour, minuteValue int
-	var err error
+
+	var (
+		year, month, day, hour, minuteValue int
+		err                                 error
+	)
+
 	switch length {
 	case posixFullLength: // CCYYMMDDhhmm
 		century, err := strconv.Atoi(timestampStr[0:2])
 		if err != nil {
 			return Time{}, fmt.Errorf("atoi century: %w", err)
 		}
+
 		year2, err := strconv.Atoi(timestampStr[2:4])
 		if err != nil {
 			return Time{}, fmt.Errorf("atoi year2: %w", err)
 		}
+
 		year = century*centuryMultiplier + year2
 		timestampStr = timestampStr[4:]
 	case posixYearLength: // YYMMDDhhmm
@@ -94,13 +108,15 @@ func ParsePosixTime(timestampStr string) (Time, error) {
 		if err != nil {
 			return Time{}, fmt.Errorf("atoi year2: %w", err)
 		}
+
 		year = y2kBase + year2
 		if year2 < y2kPivot {
 			year += y2kShift
 		}
+
 		timestampStr = timestampStr[2:]
 	case posixMonthLength: // MMDDhhmm
-		year = time.Now().Year()
+		year = Now().Year()
 	default:
 		return Time{}, fmt.Errorf("%w: %s", errors.ErrInvalidPosixLength, timestampStr)
 	}
@@ -109,14 +125,17 @@ func ParsePosixTime(timestampStr string) (Time, error) {
 	if err != nil {
 		return Time{}, fmt.Errorf("atoi month: %w", err)
 	}
+
 	day, err = strconv.Atoi(timestampStr[2:4])
 	if err != nil {
 		return Time{}, fmt.Errorf("atoi day: %w", err)
 	}
+
 	hour, err = strconv.Atoi(timestampStr[4:6])
 	if err != nil {
 		return Time{}, fmt.Errorf("atoi hour: %w", err)
 	}
+
 	minuteValue, err = strconv.Atoi(timestampStr[6:8])
 	if err != nil {
 		return Time{}, fmt.Errorf("atoi minute: %w", err)
@@ -145,10 +164,15 @@ func ParseDate(dateStr string) (Time, error) {
 		"15:04:05",
 		"15:04",
 	}
-	var parsedTime time.Time
-	var parseErr error
-	now := time.Now()
+
+	var (
+		parsedTime time.Time
+		parseErr   error
+	)
+
+	now := Now()
 	isTimeOnly := false
+
 	for _, format := range formats {
 		parsedTime, parseErr = time.ParseInLocation(format, dateStr, time.Local)
 		if parseErr == nil {
@@ -159,9 +183,11 @@ func ParseDate(dateStr string) (Time, error) {
 			break
 		}
 	}
+
 	if parseErr != nil {
 		return Time{}, errors.ErrUnsupportedDateFormat
 	}
+
 	if isTimeOnly {
 		parsedTime = time.Date(
 			now.Year(),

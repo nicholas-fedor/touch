@@ -21,6 +21,7 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -70,7 +71,7 @@ func TestExecute(t *testing.T) {
 		name        string
 		args        []string
 		mockFSSetup func(*mocks.MockFS)
-		mockRunE    func(cmd *cobra.Command, args []string) error
+		mockRunE    func(*cobra.Command, []string) error
 		wantExit    int
 		wantStderr  string
 	}{
@@ -78,11 +79,9 @@ func TestExecute(t *testing.T) {
 			name:        "success no args show usage exit 1",
 			args:        []string{},
 			mockFSSetup: nil,
-			mockRunE: func(cmd *cobra.Command, args []string) error {
-				return fmt.Errorf("missing operands")
-			},
-			wantExit:   1,
-			wantStderr: "Error: missing operands\n" + usageStr,
+			mockRunE:    func(_ *cobra.Command, _ []string) error { return errors.New("missing operands") },
+			wantExit:    1,
+			wantStderr:  "Error: missing operands\n" + usageStr,
 		},
 		{
 			name: "success with file",
@@ -92,9 +91,7 @@ func TestExecute(t *testing.T) {
 				m.On("Chtimes", "testfile.txt", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).
 					Return(nil)
 			},
-			mockRunE: func(cmd *cobra.Command, args []string) error {
-				return cli.RunTouch(cmd, args)
-			},
+			mockRunE:   cli.RunTouch,
 			wantExit:   0,
 			wantStderr: "",
 		},
@@ -102,11 +99,9 @@ func TestExecute(t *testing.T) {
 			name:        "error invalid flag exit 1",
 			args:        []string{"--time", "invalid"},
 			mockFSSetup: nil,
-			mockRunE: func(cmd *cobra.Command, args []string) error {
-				return fmt.Errorf("invalid time argument")
-			},
-			wantExit:   1,
-			wantStderr: "Error: invalid time argument\n" + usageStr,
+			mockRunE:    func(_ *cobra.Command, _ []string) error { return errors.New("invalid time argument") },
+			wantExit:    1,
+			wantStderr:  "Error: invalid time argument\n" + usageStr,
 		},
 		{
 			name: "error apply files exit 1",
@@ -114,9 +109,7 @@ func TestExecute(t *testing.T) {
 			mockFSSetup: func(m *mocks.MockFS) {
 				m.On("Stat", "errorfile.txt").Return(nil, os.ErrPermission)
 			},
-			mockRunE: func(cmd *cobra.Command, args []string) error {
-				return cli.RunTouch(cmd, args)
-			},
+			mockRunE:   cli.RunTouch,
 			wantExit:   1,
 			wantStderr: "touch: \"errorfile.txt\": stat file errorfile.txt: permission denied\n",
 		},
@@ -127,6 +120,7 @@ func TestExecute(t *testing.T) {
 			if tt.mockFSSetup != nil {
 				tt.mockFSSetup(mockFS)
 			}
+
 			filesystem.Default = mockFS // Override default FS with mock.
 
 			// Create a new command instance for each test to avoid flag conflicts.
@@ -156,13 +150,17 @@ func TestExecute(t *testing.T) {
 
 			// Set up arguments and flags.
 			oldArgs := os.Args
+
 			defer func() { os.Args = oldArgs }()
+
 			os.Args = append([]string{"touch"}, tt.args...)
 			cmd.SetArgs(tt.args)
 
 			// Capture stderr.
 			oldStderr := os.Stderr
+
 			defer func() { os.Stderr = oldStderr }()
+
 			r, w, _ := os.Pipe()
 			os.Stderr = w
 
@@ -172,20 +170,28 @@ func TestExecute(t *testing.T) {
 			ExitFunc = func(code int) {
 				exitCode = code
 			}
+
 			defer func() { ExitFunc = origExit }()
 
 			// Run Execute with the mocked command.
 			if err := cmd.Execute(); err != nil {
-				if err.Error() == "missing operands" || err.Error() == "invalid time argument" {
+				switch err.Error() {
+				case "missing operands", "invalid time argument":
 					fmt.Fprintln(os.Stderr, "Error:", err)
-					cmd.Usage()
-				} else if strings.HasPrefix(err.Error(), "touch: ") {
-					fmt.Fprintln(os.Stderr, err)
-				} else if err.Error() == "errors occurred while processing files" {
+
+					if usageErr := cmd.Usage(); usageErr != nil {
+						fmt.Fprintln(os.Stderr, "Error displaying usage:", usageErr)
+					}
+				case "errors occurred while processing files":
 					// Do nothing, specific errors already printed
-				} else {
-					fmt.Fprintln(os.Stderr, "Error:", err)
+				default:
+					if strings.HasPrefix(err.Error(), "touch: ") {
+						fmt.Fprintln(os.Stderr, err)
+					} else {
+						fmt.Fprintln(os.Stderr, "Error:", err)
+					}
 				}
+
 				ExitFunc(1)
 			}
 
@@ -198,6 +204,7 @@ func TestExecute(t *testing.T) {
 			if exitCode != tt.wantExit {
 				t.Errorf("Execute() exit code = %v, want %v", exitCode, tt.wantExit)
 			}
+
 			if stderrOutput != tt.wantStderr {
 				t.Errorf("Execute() stderr = %v, want %v", stderrOutput, tt.wantStderr)
 			}

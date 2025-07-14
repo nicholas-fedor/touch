@@ -30,9 +30,8 @@ import (
 
 // mockFileInfo is a simple mock for os.FileInfo in tests.
 type mockFileInfo struct {
-	access Time
-	mod    Time
-	sys    any
+	mod Time
+	sys any
 }
 
 func (m mockFileInfo) Name() string      { return "" }
@@ -47,6 +46,7 @@ func TestGetTimesFromRef(t *testing.T) {
 		refFilePath string
 		noDeref     bool
 	}
+
 	tests := []struct {
 		name         string
 		args         args
@@ -63,7 +63,7 @@ func TestGetTimesFromRef(t *testing.T) {
 				m.On("Stat", "testref.txt").
 					Return(&mockFileInfo{mod: time.Date(2025, 7, 13, 13, 0, 0, 0, time.Local)}, nil)
 			},
-			mockGetAtime: func(fi os.FileInfo) Time {
+			mockGetAtime: func(_ os.FileInfo) Time {
 				return time.Date(2025, 7, 13, 14, 0, 0, 0, time.Local) // Custom access time.
 			},
 			wantAccess: time.Date(2025, 7, 13, 14, 0, 0, 0, time.Local),
@@ -77,7 +77,7 @@ func TestGetTimesFromRef(t *testing.T) {
 				m.On("Lstat", "testref.txt").
 					Return(&mockFileInfo{mod: time.Date(2025, 7, 13, 12, 0, 0, 0, time.Local)}, nil)
 			},
-			mockGetAtime: func(fi os.FileInfo) Time {
+			mockGetAtime: func(_ os.FileInfo) Time {
 				return time.Date(2025, 7, 13, 15, 0, 0, 0, time.Local) // Custom access time.
 			},
 			wantAccess: time.Date(2025, 7, 13, 15, 0, 0, 0, time.Local),
@@ -122,9 +122,12 @@ func TestGetTimesFromRef(t *testing.T) {
 			if tt.mockSetup != nil {
 				tt.mockSetup(mockFS)
 			}
+
 			filesystem.Default = mockFS // Override default FS with mock.
 			oldGetAtime := platform.GetAtime
+
 			defer func() { platform.GetAtime = oldGetAtime }()
+
 			if tt.mockGetAtime != nil {
 				platform.GetAtime = tt.mockGetAtime
 			}
@@ -135,9 +138,11 @@ func TestGetTimesFromRef(t *testing.T) {
 
 				return
 			}
+
 			if !got.Equal(tt.wantAccess) {
 				t.Errorf("GetTimesFromRef() got = %v, want %v", got, tt.wantAccess)
 			}
+
 			if !got1.Equal(tt.wantMod) {
 				t.Errorf("GetTimesFromRef() got1 = %v, want %v", got1, tt.wantMod)
 			}

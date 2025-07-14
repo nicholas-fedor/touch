@@ -46,7 +46,7 @@ func Test_processFlags(t *testing.T) {
 	}{
 		{
 			name:         "default no flags",
-			flagSetup:    func(cmd *cobra.Command) {},
+			flagSetup:    func(_ *cobra.Command) {},
 			wantChange:   core.ChAtime | core.ChMtime,
 			wantNoCreate: false,
 			wantNoDeref:  false,
@@ -147,13 +147,13 @@ func Test_processFlags(t *testing.T) {
 			},
 			wantChange:   core.ChAtime | core.ChMtime,
 			wantNoCreate: false,
-			wantNoDeref:  runtime.GOOS != "windows",
+			wantNoDeref:  runtime.GOOS != osWindows,
 			wantRef:      "",
 			wantStamp:    "",
 			wantDate:     "",
 			wantErr:      nil,
 			wantStderr: func() string {
-				if runtime.GOOS == "windows" {
+				if runtime.GOOS == osWindows {
 					return "Warning: -h/--no-dereference is not supported on Windows; symlinks will be followed\n"
 				}
 
@@ -322,6 +322,7 @@ func Test_processFlags(t *testing.T) {
 			got, got1, got2, got3, got4, got5, err := processFlags(cmd)
 
 			w.Close()
+
 			os.Stderr = oldStderr
 
 			var buf bytes.Buffer
@@ -333,24 +334,31 @@ func Test_processFlags(t *testing.T) {
 			} else if tt.wantErr != nil && err.Error() != tt.wantErr.Error() {
 				t.Errorf("processFlags() error = %v, want %v", err, tt.wantErr)
 			}
+
 			if got != tt.wantChange {
 				t.Errorf("processFlags() got = %v, want %v", got, tt.wantChange)
 			}
+
 			if got1 != tt.wantNoCreate {
 				t.Errorf("processFlags() got1 = %v, want %v", got1, tt.wantNoCreate)
 			}
+
 			if got2 != tt.wantNoDeref {
 				t.Errorf("processFlags() got2 = %v, want %v", got2, tt.wantNoDeref)
 			}
+
 			if got3 != tt.wantRef {
 				t.Errorf("processFlags() got3 = %v, want %v", got3, tt.wantRef)
 			}
+
 			if got4 != tt.wantStamp {
 				t.Errorf("processFlags() got4 = %v, want %v", got4, tt.wantStamp)
 			}
+
 			if got5 != tt.wantDate {
 				t.Errorf("processFlags() got5 = %v, want %v", got5, tt.wantDate)
 			}
+
 			if stderrOutput != tt.wantStderr {
 				t.Errorf("processFlags() stderr = %v, want %v", stderrOutput, tt.wantStderr)
 			}
