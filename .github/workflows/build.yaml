@@ -26,14 +26,6 @@ jobs:
         with:
           go-version: 1.24.x
 
-      - name: Start gpg-agent
-        run: gpg-agent --daemon
-
-      - name: Enable preset-passphrase
-        run: |
-          echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
-          gpgconf --reload gpg-agent
-
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec
         with:
