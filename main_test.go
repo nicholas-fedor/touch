@@ -27,15 +27,18 @@ import (
 func TestMain(t *testing.T) {
 	// Mock cmd.ExitFunc to capture the exit code.
 	var exitCode int
+
 	origExit := cmd.ExitFunc
 	cmd.ExitFunc = func(code int) {
 		exitCode = code
 	}
+
 	defer func() { cmd.ExitFunc = origExit }()
 
 	// Set os.Args to ["touch", "--version"] to print version and exit 0 without calling RunE.
 	oldArgs := os.Args
 	os.Args = []string{"touch", "--version"}
+
 	defer func() { os.Args = oldArgs }()
 
 	// Run main.

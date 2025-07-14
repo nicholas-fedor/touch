@@ -29,6 +29,7 @@ func Test_defaultFS_Stat(t *testing.T) {
 	type args struct {
 		path string
 	}
+
 	tests := []struct {
 		name    string
 		d       defaultFS
@@ -40,7 +41,7 @@ func Test_defaultFS_Stat(t *testing.T) {
 			name: "existing file",
 			d:    defaultFS{},
 			setup: func() string {
-				tmpFile, _ := os.CreateTemp("", "test_stat_*")
+				tmpFile, _ := os.CreateTemp(t.TempDir(), "test_stat_*")
 				defer tmpFile.Close()
 
 				return tmpFile.Name()
@@ -66,7 +67,9 @@ func Test_defaultFS_Stat(t *testing.T) {
 					defer os.Remove(path) // Cleanup if created.
 				}
 			}
+
 			tt.args.path = path
+
 			_, err := tt.d.Stat(tt.args.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("defaultFS.Stat() error = %v, wantErr %v", err, tt.wantErr)
@@ -79,6 +82,7 @@ func Test_defaultFS_Lstat(t *testing.T) {
 	type args struct {
 		path string
 	}
+
 	tests := []struct {
 		name    string
 		d       defaultFS
@@ -90,7 +94,7 @@ func Test_defaultFS_Lstat(t *testing.T) {
 			name: "existing file",
 			d:    defaultFS{},
 			setup: func() string {
-				tmpFile, _ := os.CreateTemp("", "test_lstat_*")
+				tmpFile, _ := os.CreateTemp(t.TempDir(), "test_lstat_*")
 				defer tmpFile.Close()
 
 				return tmpFile.Name()
@@ -116,7 +120,9 @@ func Test_defaultFS_Lstat(t *testing.T) {
 					defer os.Remove(path) // Cleanup if created.
 				}
 			}
+
 			tt.args.path = path
+
 			_, err := tt.d.Lstat(tt.args.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("defaultFS.Lstat() error = %v, wantErr %v", err, tt.wantErr)
@@ -129,6 +135,7 @@ func Test_defaultFS_Create(t *testing.T) {
 	type args struct {
 		path string
 	}
+
 	tests := []struct {
 		name    string
 		d       defaultFS
@@ -156,13 +163,16 @@ func Test_defaultFS_Create(t *testing.T) {
 
 				return
 			}
+
 			if got != nil {
 				got.Close() // Close if created.
 			}
+
 			if !tt.wantErr {
 				if _, statErr := os.Stat(tt.args.path); statErr != nil {
 					t.Errorf("defaultFS.Create() file should exist but stat failed: %v", statErr)
 				}
+
 				os.Remove(tt.args.path) // Cleanup after stat.
 			}
 		})
@@ -175,6 +185,7 @@ func Test_defaultFS_Chtimes(t *testing.T) {
 		atime Time
 		mtime Time
 	}
+
 	tests := []struct {
 		name    string
 		d       defaultFS
@@ -186,7 +197,7 @@ func Test_defaultFS_Chtimes(t *testing.T) {
 			name: "change times on existing file",
 			d:    defaultFS{},
 			setup: func() string {
-				tmpFile, _ := os.CreateTemp("", "test_chtimes_*")
+				tmpFile, _ := os.CreateTemp(t.TempDir(), "test_chtimes_*")
 				defer tmpFile.Close()
 
 				return tmpFile.Name()
@@ -220,22 +231,27 @@ func Test_defaultFS_Chtimes(t *testing.T) {
 					defer os.Remove(path) // Cleanup.
 				}
 			}
+
 			tt.args.path = path
+
 			err := tt.d.Chtimes(tt.args.path, tt.args.atime, tt.args.mtime)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("defaultFS.Chtimes() error = %v, wantErr %v", err, tt.wantErr)
 
 				return
 			}
+
 			if tt.wantErr {
 				return
 			}
+
 			info, statErr := os.Stat(tt.args.path)
 			if statErr != nil {
 				t.Errorf("defaultFS.Chtimes() stat after = %v", statErr)
 
 				return
 			}
+
 			if !info.ModTime().Equal(tt.args.mtime) {
 				t.Errorf(
 					"defaultFS.Chtimes() mod time = %v, want %v",

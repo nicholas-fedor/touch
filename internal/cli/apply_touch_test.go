@@ -41,6 +41,7 @@ func Test_applyToFiles(t *testing.T) {
 		modTime     core.Time
 		files       []string
 	}
+
 	tests := []struct {
 		name        string
 		args        args
@@ -182,6 +183,7 @@ func Test_applyToFiles(t *testing.T) {
 			if tt.mockFSSetup != nil {
 				tt.mockFSSetup(mockFS)
 			}
+
 			filesystem.Default = mockFS // Override default FS with mock.
 
 			// Capture stderr.
@@ -199,6 +201,7 @@ func Test_applyToFiles(t *testing.T) {
 			)
 
 			w.Close()
+
 			os.Stderr = oldStderr
 
 			var buf bytes.Buffer
@@ -208,6 +211,7 @@ func Test_applyToFiles(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("applyToFiles() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if stderrOutput != tt.wantStderr {
 				t.Errorf("applyToFiles() stderr = %v, want %v", stderrOutput, tt.wantStderr)
 			}

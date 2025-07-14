@@ -15,34 +15,35 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package errors defines static error variables for common failure cases.
-// These are used to wrap specific errors, enabling error checking with errors.Is.
+// Package errors defines custom error types used across the touch CLI tool.
+// It provides specific error values for consistent error handling in various packages.
 package errors
 
 import "errors"
 
-// ErrMultipleTimeSources is returned when times are specified from more than one source (-d, -r, -t).
-var ErrMultipleTimeSources = errors.New("cannot specify times from more than one source")
+// ErrInvalidDateTimeValues indicates that the provided date or time components are out of valid ranges.
+var ErrInvalidDateTimeValues = errors.New("invalid date or time values")
 
-// ErrInvalidTimeArg is returned for invalid --time arguments.
+// ErrInvalidPosixLength indicates that the POSIX timestamp string has an invalid length.
+var ErrInvalidPosixLength = errors.New("invalid POSIX timestamp length")
+
+// ErrInvalidSeconds indicates that the seconds component in a POSIX timestamp is invalid.
+var ErrInvalidSeconds = errors.New("invalid seconds value")
+
+// ErrInvalidTimeArg indicates that the --time flag received an invalid argument.
 var ErrInvalidTimeArg = errors.New("invalid time argument")
 
-// ErrProcessingFiles is returned when errors occur during file processing.
+// ErrMissingOperands indicates that no files were provided as arguments when required.
+var ErrMissingOperands = errors.New("missing operands")
+
+// ErrMultipleTimeSources indicates that multiple time source flags (-r, -t, -d) were specified simultaneously.
+var ErrMultipleTimeSources = errors.New("multiple time sources specified")
+
+// ErrNoDerefUnsupported indicates that the --no-dereference option is not supported on the current platform.
+var ErrNoDerefUnsupported = errors.New("no-dereference is not supported on this platform")
+
+// ErrProcessingFiles indicates that errors occurred while processing one or more files.
 var ErrProcessingFiles = errors.New("errors occurred while processing files")
 
-// ErrInvalidSeconds is returned for invalid seconds in POSIX timestamps.
-var ErrInvalidSeconds = errors.New("invalid seconds")
-
-// ErrInvalidPosixLength is returned for invalid length in POSIX timestamps.
-var ErrInvalidPosixLength = errors.New("invalid length for POSIX time")
-
-// ErrInvalidDateTimeValues is returned for out-of-range date/time components.
-var ErrInvalidDateTimeValues = errors.New("invalid date/time values")
-
-// ErrUnsupportedDateFormat is returned for unsupported date formats in ParseDate.
-var ErrUnsupportedDateFormat = errors.New(
-	"unsupported date format; try RFC3339, YYYY-MM-DDTHH:MM:SS, YYYY-MM-DD HH:MM:SS, YYYY-MM-DDTHH:MM, YYYY-MM-DD, HH:MM:SS, HH:MM",
-)
-
-// ErrNoDerefUnsupported is returned when no-dereference is requested on unsupported platforms.
-var ErrNoDerefUnsupported = errors.New("no-dereference not supported on this platform")
+// ErrUnsupportedDateFormat indicates that the provided date string does not match any supported format.
+var ErrUnsupportedDateFormat = errors.New("unsupported date format")

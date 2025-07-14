@@ -32,6 +32,7 @@ import (
 
 	"github.com/nicholas-fedor/touch/internal/filesystem"
 	"github.com/nicholas-fedor/touch/internal/filesystem/mocks"
+	"github.com/nicholas-fedor/touch/internal/platform"
 )
 
 func TestRunTouch(t *testing.T) {
@@ -39,6 +40,7 @@ func TestRunTouch(t *testing.T) {
 		cmd  *cobra.Command
 		args []string
 	}
+
 	tests := []struct {
 		name        string
 		args        args
@@ -143,15 +145,23 @@ func TestRunTouch(t *testing.T) {
 				args: []string{"file.txt"},
 			},
 			mockFSSetup: func(m *mocks.MockFS) {
-				m.On("Stat", "file.txt").Return(&mockFileInfo{mod: time.Now()}, nil)
+				m.On("Stat", "file.txt").Return(nil, os.ErrNotExist)
+				m.On("Create", "file.txt").Return(&os.File{}, nil)
 				m.On("Chtimes", "file.txt", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).
 					Return(nil)
 			},
-			setupEnv:   nil,
+			setupEnv: func() {
+				if runtime.GOOS != osWindows {
+					// On non-Windows, mock SetTimesNoDeref for no-dereference behavior.
+					platform.SetTimesNoDeref = func(_ string, _, _ time.Time) error {
+						return nil
+					}
+				}
+			},
 			wantErr:    false,
 			wantStdout: "",
 			wantStderr: func() string {
-				if runtime.GOOS == "windows" {
+				if runtime.GOOS == osWindows {
 					return "Warning: -h/--no-dereference is not supported on Windows; symlinks will be followed\n"
 				}
 
@@ -165,6 +175,7 @@ func TestRunTouch(t *testing.T) {
 			if tt.mockFSSetup != nil {
 				tt.mockFSSetup(mockFS)
 			}
+
 			filesystem.Default = mockFS // Override default FS with mock.
 
 			// Setup env if needed.
@@ -184,21 +195,25 @@ func TestRunTouch(t *testing.T) {
 
 			wOut.Close()
 			wErr.Close()
+
 			os.Stdout = oldStdout
 			os.Stderr = oldStderr
 
 			var bufOut, bufErr bytes.Buffer
 			bufOut.ReadFrom(rOut)
 			bufErr.ReadFrom(rErr)
+
 			stdoutOutput := bufOut.String()
 			stderrOutput := strings.ReplaceAll(bufErr.String(), "\r\n", "\n")
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RunTouch() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if stdoutOutput != tt.wantStdout {
 				t.Errorf("RunTouch() stdout = %v, want %v", stdoutOutput, tt.wantStdout)
 			}
+
 			if stderrOutput != tt.wantStderr {
 				t.Errorf("RunTouch() stderr = %v, want %v", stderrOutput, tt.wantStderr)
 			}

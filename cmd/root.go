@@ -60,9 +60,13 @@ For more details, see the GNU touch manual or use --help.`,
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
+
 		if err.Error() == "missing operands" || err.Error() == "invalid time argument" {
-			rootCmd.Usage()
+			if usageErr := rootCmd.Usage(); usageErr != nil {
+				fmt.Fprintln(os.Stderr, "Error displaying usage:", usageErr)
+			}
 		}
+
 		ExitFunc(1)
 	}
 }
