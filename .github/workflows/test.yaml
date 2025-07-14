@@ -1,0 +1,45 @@
+name: Run tests and upload coverage
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run tests and collect coverage
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version:
+          - 1.24.x
+        platform:
+          - macos-latest
+          - windows-latest
+          - ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@09d2acae674a48949e3602304ab46fd20ae0c42f
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@7c0b336c9aab5e8ed4f0ad8b81225b125f9883e4
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: true
+          cache-dependency-path: "**/go.sum"
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: |
+          go test -v -coverprofile coverage.out -covermode atomic ./...
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@2db07e317924c76f654a414629d71c65876882e2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

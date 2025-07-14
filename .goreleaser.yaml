@@ -1,0 +1,77 @@
+version: 2
+project_name: touch
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - main: ./main.go
+    binary: touch
+    ldflags:
+      - -s -w
+      - -X github.com/nicholas-fedor/touch/internal/version.Version={{ .Tag }}
+      - -X github.com/nicholas-fedor/touch/internal/version.Commit={{ .ShortCommit }}
+      - -X github.com/nicholas-fedor/touch/internal/version.Date={{ .Date }}
+    goarch:
+      - amd64
+      - "386"
+      - arm
+      - arm64
+      - riscv64
+    goriscv64:
+      - rva20u64
+    ignore:
+      - goos: windows
+        goarch: riscv64
+
+archives:
+  - name_template: >-
+      {{- .ProjectName }}_
+      {{- if eq .Os "darwin" }}macOS
+      {{- else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}amd64
+      {{- else if eq .Arch "386" }}i386
+      {{- else if eq .Arch "arm" }}armhf
+      {{- else if eq .Arch "arm64" }}arm64v8
+      {{- else if eq .Arch "riscv64" }}riscv64
+      {{- else }}{{ .Arch }}{{ end }}_
+      {{- .Version -}}
+    formats: ["tar.gz"]
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
+    files:
+      - LICENSE.md
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^test:"
+
+release:
+  github:
+    owner: nicholas-fedor
+    name: touch
+  draft: false
+  prerelease: auto
+
+checksum:
+  name_template: checksums.txt
+
+signs:
+  - id: default
+    artifacts: all
+    args:
+      - "--batch"
+      - "--local-user"
+      - "nick@nickfedor.com"
+      - "--yes"
+      - "--pinentry-mode"
+      - "loopback"
+      - "--passphrase"
+      - "${GPG_PASSPHRASE}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
