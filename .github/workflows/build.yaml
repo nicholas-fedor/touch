@@ -26,6 +26,14 @@ jobs:
         with:
           go-version: 1.24.x
 
+      - name: Start gpg-agent
+        run: gpg-agent --daemon
+
+      - name: Enable preset-passphrase
+        run: |
+          echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
+          gpgconf --reload gpg-agent
+
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec
         with:
@@ -41,7 +49,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          FINGERPRINT: "21656DA587FDC48EE50C4428F68397FFBDD51EC3"
+          FINGERPRINT: 21656DA587FDC48EE50C4428F68397FFBDD51EC3
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
