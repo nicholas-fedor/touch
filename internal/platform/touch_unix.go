@@ -32,7 +32,7 @@ import (
 func init() {
 	GetAtime = func(fileInfo os.FileInfo) Time {
 		if sysStat, ok := fileInfo.Sys().(*syscall.Stat_t); ok {
-			return time.Unix(sysStat.Atim.Sec, sysStat.Atim.Nsec)
+			return time.Unix(int64(sysStat.Atim.Sec), int64(sysStat.Atim.Nsec))
 		}
 
 		return fileInfo.ModTime() // Fallback if cast fails.
