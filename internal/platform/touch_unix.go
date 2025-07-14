@@ -17,6 +17,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Package platform provides platform-specific implementations for timestamp operations.
+// It defines exported vars for GetAtime and SetTimesNoDeref, overridden by build tags.
 package platform
 
 import (
@@ -32,6 +34,9 @@ import (
 func init() {
 	GetAtime = func(fileInfo os.FileInfo) Time {
 		if sysStat, ok := fileInfo.Sys().(*syscall.Stat_t); ok {
+			// Cast to int64 to support 32-bit architectures (386, arm) where Sec and Nsec are int32.
+			// On 64-bit systems, these are already int64, but the cast is safe and avoids type errors.
+			//nolint:unconvert // Necessary for 32-bit compatibility.
 			return time.Unix(int64(sysStat.Atim.Sec), int64(sysStat.Atim.Nsec))
 		}
 
