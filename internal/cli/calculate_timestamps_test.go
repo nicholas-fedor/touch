@@ -30,6 +30,7 @@ import (
 	"github.com/nicholas-fedor/touch/internal/filesystem"
 	"github.com/nicholas-fedor/touch/internal/filesystem/mocks"
 	"github.com/nicholas-fedor/touch/internal/platform"
+	"github.com/nicholas-fedor/touch/internal/timestamp"
 )
 
 func Test_calculateTimestamps(t *testing.T) {
@@ -38,7 +39,12 @@ func Test_calculateTimestamps(t *testing.T) {
 
 	defer func() { core.Now = oldNow }()
 
+	oldTimestampNow := timestamp.Now
+
+	defer func() { timestamp.Now = oldTimestampNow }()
+
 	core.Now = func() core.Time { return fixedNow }
+	timestamp.Now = func() timestamp.Time { return fixedNow }
 
 	type args struct {
 		noDeref     bool
@@ -169,8 +175,8 @@ func Test_calculateTimestamps(t *testing.T) {
 			},
 			mockFSSetup: nil,
 			setupEnv:    nil,
-			wantAccess:  time.Date(2025, 7, 14, 14, 30, 0, 0, time.Local),
-			wantMod:     time.Date(2025, 7, 14, 14, 30, 0, 0, time.Local),
+			wantAccess:  time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local),
+			wantMod:     time.Date(2025, 7, 13, 14, 30, 0, 0, time.Local),
 			wantFiles:   []string{},
 			wantErr:     false,
 			wantStderr:  "",
