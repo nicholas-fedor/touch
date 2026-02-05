@@ -48,7 +48,14 @@ func applyToFiles(
 		go func(currentFile string) {
 			defer wg.Done()
 
-			if err := core.Touch(currentFile, changeTimes, noCreate, noDeref, accessTime, modTime); err != nil {
+			if err := core.Touch(
+				currentFile,
+				changeTimes,
+				noCreate,
+				noDeref,
+				accessTime,
+				modTime,
+			); err != nil {
 				fmt.Fprintf(os.Stderr, "touch: %s: %v\n", core.Quote(currentFile), err)
 				hadError.Store(true)
 			}

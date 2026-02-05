@@ -212,6 +212,13 @@ linters:
           - wrapcheck
           - varnamelen
 
+      # Exclude var-naming rule from revive for internal/errors package.
+      # The errors package name conflicts with Go standard library but is intentionally used.
+      - path: "internal/errors/"
+        linters:
+          - revive
+        text: "package names that conflict with Go standard library"
+
     # Run some linter only for test files by excluding its issues for everything else.
     # - path-except: _test\.go
     # linters:
@@ -416,7 +423,7 @@ output:
 
   ##################################################################################################
   # Prints issues in an HTML page.
-  # It uses the Cloudflare CDN (cdnjs) and React.
+  # It uses the Cloudflare CDN (React.
   # html:
   # Output path can be either `stdout`, `stderr` or path to the file to write to.
   # Default: stdout
@@ -472,7 +479,7 @@ output:
   # If the severity values are inside the following list, they are ordered in this order:
   #   1. error
   #   2. warning
-  #   3. high
+  #    3. high
   #   4. medium
   #   5. low
   # Either they are sorted alphabetically.
