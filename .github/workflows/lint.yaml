@@ -6,9 +6,6 @@ on:
 permissions:
   contents: read
 
-env:
-  GO_VERSION: 1.25.x
-
 jobs:
   lint:
     name: Run Linter
@@ -23,12 +20,12 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
-          check-latest: true
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: "go.mod"
 
       - name: Install dependencies
         run: go mod download
