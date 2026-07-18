@@ -13,7 +13,6 @@ A Go implementation of the GNU touch utility
 [![Codecov](https://codecov.io/gh/nicholas-fedor/touch/branch/main/graph/badge.svg)](https://codecov.io/gh/nicholas-fedor/touch)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ffbca83bd14d48669260bb9bb38668a8)](https://www.codacy.com/gh/nicholas-fedor/touch/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nicholas-fedor/touch&amp;utm_campaign=Badge_Grade)
 [![GoDoc](https://godoc.org/github.com/nicholas-fedor/touch?status.svg)](https://godoc.org/github.com/nicholas-fedor/touch)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nicholas-fedor/touch)](https://goreportcard.com/report/github.com/nicholas-fedor/touch)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/nicholas-fedor/touch)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
