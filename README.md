@@ -9,9 +9,7 @@
 A Go implementation of the GNU touch utility
 
 [![Latest Version](https://img.shields.io/github/tag/nicholas-fedor/touch.svg)](https://github.com/nicholas-fedor/touch/releases)
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/nicholas-fedor/touch/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/nicholas-fedor/touch/tree/main)
 [![Codecov](https://codecov.io/gh/nicholas-fedor/touch/branch/main/graph/badge.svg)](https://codecov.io/gh/nicholas-fedor/touch)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ffbca83bd14d48669260bb9bb38668a8)](https://www.codacy.com/gh/nicholas-fedor/touch/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nicholas-fedor/touch&amp;utm_campaign=Badge_Grade)
 [![GoDoc](https://godoc.org/github.com/nicholas-fedor/touch?status.svg)](https://godoc.org/github.com/nicholas-fedor/touch)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/nicholas-fedor/touch)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
