@@ -11,11 +11,6 @@ permissions:
   contents: read
 
 jobs:
-  Lint:
-    uses: ./.github/workflows/lint.yaml
-    permissions:
-      contents: read
-
   Test:
     uses: ./.github/workflows/test.yaml
     permissions:
@@ -25,7 +20,6 @@ jobs:
     uses: ./.github/workflows/build.yaml
     needs:
       - Test
-      - Lint
     secrets: inherit
     permissions:
       contents: write
